@@ -7,7 +7,10 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const contactsRouter = require("./api");
+const { usersRouter } = require("./api");
+app.use("/api/users", usersRouter);
+
+const { contactsRouter } = require("./api");
 app.use("/api/contacts", contactsRouter);
 
 app.use((_, res, __) => {
