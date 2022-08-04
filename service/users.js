@@ -20,10 +20,15 @@ const logoutUser = async (id) => {
   return User.findByIdAndUpdate(id, { token: null });
 };
 
+const updateSubscription = async (id, subscription) => {
+  return User.findByIdAndUpdate(id, { subscription });
+};
+
 module.exports = {
   findUser,
   findUserById,
   signupUser,
   loginUser,
   logoutUser,
+  updateSubscription,
 };

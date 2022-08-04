@@ -2,6 +2,7 @@ const { serviceUsers } = require("../service");
 const { Conflict, Unauthorized } = require("http-errors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { createError } = require("../helpers/createError");
 
 require("dotenv").config();
 const { SECRET_KEY } = process.env;
@@ -75,9 +76,24 @@ const logout = async (req, res, next) => {
   }
 };
 
+const updateSubscription = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const { subscription } = req.body;
+    const user = await serviceUsers.updateSubscription(_id, subscription);
+    if (!user) {
+      throw createError(404);
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   signup,
   login,
   getCurrent,
   logout,
+  updateSubscription,
 };
