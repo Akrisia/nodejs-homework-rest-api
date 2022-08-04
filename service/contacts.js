@@ -1,6 +1,18 @@
 const { Contact } = require("./schemas/contact");
 
-const listContacts = async (_id, skip, limit) => {
+const listContacts = async (_id, skip, limit, favorite) => {
+  if (favorite === "true") {
+    return Contact.find({ owner: _id, favorite: true }, "", {
+      skip,
+      limit: Number(limit),
+    }).populate("owner", "_id email");
+  }
+  if (favorite === "false") {
+    return Contact.find({ owner: _id, favorite: false }, "", {
+      skip,
+      limit: Number(limit),
+    }).populate("owner", "_id email");
+  }
   return Contact.find({ owner: _id }, "", {
     skip,
     limit: Number(limit),

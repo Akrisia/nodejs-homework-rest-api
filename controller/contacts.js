@@ -3,10 +3,15 @@ const { createError } = require("../helpers/createError");
 
 const listContacts = async (req, res, next) => {
   const { _id } = req.user;
-  const { page = 1, limit = 20 } = req.query;
+  const { page = 1, limit = 20, favorite } = req.query;
   const skip = (page - 1) * limit;
   try {
-    const contacts = await serviceContacts.listContacts(_id, skip, limit);
+    const contacts = await serviceContacts.listContacts(
+      _id,
+      skip,
+      limit,
+      favorite
+    );
     res.status(200).json(contacts);
   } catch (error) {
     next(error);

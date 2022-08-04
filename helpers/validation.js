@@ -21,7 +21,20 @@ const favoriteValidation = (schema) => {
   };
 };
 
+const subscriptionValidation = (schema) => {
+  return (req, res, next) => {
+    const { error } = schema.validate(req.body);
+    if (error) {
+      error.status = 400;
+      error.message = "Missing field subscription";
+      next(error);
+    }
+    next();
+  };
+};
+
 module.exports = {
   validation,
   favoriteValidation,
+  subscriptionValidation,
 };
