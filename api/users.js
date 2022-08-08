@@ -1,8 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const { validation, subscriptionValidation, auth } = require("../helpers");
-const { joiSchema, joiSubscriptionSchema } = require("../service/schemas/user");
-const { ctrlUser } = require("../controller");
+const {
+  validation,
+  subscriptionValidation,
+  auth,
+  upload,
+} = require("../middlewares");
+const {
+  joiSchema,
+  joiSubscriptionSchema,
+} = require("../services/schemas/user");
+const { ctrlUser } = require("../controllers");
 
 router.post("/signup", validation(joiSchema), ctrlUser.signup);
 
@@ -18,5 +26,7 @@ router.patch(
   subscriptionValidation(joiSubscriptionSchema),
   ctrlUser.updateSubscription
 );
+
+router.patch("/avatars", auth, upload.single("avatar"), ctrlUser.updateAvatar);
 
 module.exports = router;

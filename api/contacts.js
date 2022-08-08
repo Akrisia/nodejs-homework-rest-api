@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { validation, favoriteValidation, auth } = require("../helpers");
-const { joiSchema, favoriteJoiSchema } = require("../service/schemas/contact");
-const { ctrlContact } = require("../controller");
+const { validation, favoriteValidation, auth } = require("../middlewares");
+const { joiSchema, favoriteJoiSchema } = require("../services/schemas/contact");
+const { ctrlContact } = require("../controllers");
 
 router.get("/", auth, ctrlContact.listContacts);
 
