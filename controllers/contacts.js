@@ -1,5 +1,5 @@
-const { serviceContacts } = require("../service");
-const { createError } = require("../helpers/createError");
+const { serviceContacts } = require("../services");
+const { NotFound } = require("http-errors");
 
 const listContacts = async (req, res, next) => {
   const { _id } = req.user;
@@ -23,7 +23,7 @@ const getContactById = async (req, res, next) => {
   try {
     const contact = await serviceContacts.getContactById(id);
     if (!contact) {
-      throw createError(404);
+      throw new NotFound("Not Found");
     }
     res.status(200).json(contact);
   } catch (error) {
@@ -50,7 +50,7 @@ const removeContact = async (req, res, next) => {
   try {
     const contact = await serviceContacts.removeContact(id);
     if (!contact) {
-      throw createError(404);
+      throw new NotFound("Not Found");
     }
     res.json({
       message: "Contact deleted",
@@ -75,7 +75,7 @@ const updateContact = async (req, res, next) => {
       { new: true }
     );
     if (!contact) {
-      throw createError(404);
+      throw new NotFound("Not Found");
     }
     res.status(200).json(contact);
   } catch (error) {
@@ -93,7 +93,7 @@ const updateStatusContact = async (req, res, next) => {
       { new: true }
     );
     if (!contact) {
-      throw createError(404);
+      throw new NotFound("Not Found");
     }
     res.status(200).json(contact);
   } catch (error) {

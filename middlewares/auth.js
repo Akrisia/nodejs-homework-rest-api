@@ -1,6 +1,6 @@
 const { Unauthorized } = require("http-errors");
 const jwt = require("jsonwebtoken");
-const { serviceUsers } = require("../service");
+const { serviceUsers } = require("../services");
 
 require("dotenv").config();
 const { SECRET_KEY } = process.env;

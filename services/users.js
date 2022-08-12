@@ -8,8 +8,8 @@ const findUserById = async (id) => {
   return User.findById(id);
 };
 
-const signupUser = async ({ email, password }) => {
-  return User.create({ email, password });
+const signupUser = async ({ email, password, avatarURL }) => {
+  return User.create({ email, password, avatarURL });
 };
 
 const loginUser = async (id, token) => {
@@ -24,6 +24,10 @@ const updateSubscription = async (id, subscription) => {
   return User.findByIdAndUpdate(id, { subscription });
 };
 
+const updateAvatar = async (id, avatarURL) => {
+  return User.findByIdAndUpdate(id, { avatarURL });
+};
+
 module.exports = {
   findUser,
   findUserById,
@@ -31,4 +35,5 @@ module.exports = {
   loginUser,
   logoutUser,
   updateSubscription,
+  updateAvatar,
 };

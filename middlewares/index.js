@@ -1,15 +1,15 @@
-const createError = require("./createError");
 const {
   validation,
   favoriteValidation,
   subscriptionValidation,
 } = require("./validation");
 const auth = require("./auth");
+const upload = require("./upload");
 
 module.exports = {
-  createError,
   validation,
   favoriteValidation,
   subscriptionValidation,
   auth,
+  upload,
 };

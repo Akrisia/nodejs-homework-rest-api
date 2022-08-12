@@ -1,8 +1,11 @@
-const { serviceUsers } = require("../service");
-const { Conflict, Unauthorized } = require("http-errors");
+const { Conflict, Unauthorized, NotFound } = require("http-errors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { createError } = require("../helpers/createError");
+const gravatar = require("gravatar");
+const path = require("path");
+const fs = require("fs/promises");
+const Jimp = require("jimp");
+const { serviceUsers } = require("../services");
 
 require("dotenv").config();
 const { SECRET_KEY } = process.env;
@@ -14,15 +17,18 @@ const signup = async (req, res, next) => {
     if (user) {
       throw new Conflict("Email in use");
     }
+    const avatarURL = gravatar.url(email);
     const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
     await serviceUsers.signupUser({
       email,
       password: hashPassword,
+      avatarURL,
     });
     res.status(201).json({
       user: {
         email,
         subscription: "starter",
+        avatarURL,
       },
     });
   } catch (error) {
@@ -45,6 +51,8 @@ const login = async (req, res, next) => {
     res.status(200).json({
       user: {
         token,
+        email,
+        subscription: user.subscription,
       },
     });
   } catch (error) {
@@ -77,16 +85,39 @@ const logout = async (req, res, next) => {
 };
 
 const updateSubscription = async (req, res, next) => {
+  const { _id } = req.user;
+  const { subscription } = req.body;
   try {
-    const { _id } = req.user;
-    const { subscription } = req.body;
     const user = await serviceUsers.updateSubscription(_id, subscription);
     if (!user) {
-      throw createError(404);
+      throw new NotFound("Not found");
     }
     res.status(200).json(user);
   } catch (error) {
     next(error);
+  }
+};
+
+const updateAvatar = async (req, res) => {
+  const avatarsDir = path.join(__dirname, "../", "public", "avatars");
+  const { _id } = req.user;
+  const { path: tmpPath, originalname } = req.file;
+  const [extension] = originalname.split(".").reverse();
+  const imageName = `${_id}.${extension}`;
+  try {
+    const resultUpload = path.join(avatarsDir, imageName);
+    Jimp.read(tmpPath)
+      .then((image) => image.resize(250, 250).write(resultUpload))
+      .catch((error) => {
+        throw error;
+      });
+    await fs.rename(tmpPath, resultUpload);
+    const avatarURL = path.join("public", "avatars", imageName);
+    await serviceUsers.updateAvatar(_id, avatarURL);
+    res.status(200).json({ avatarURL });
+  } catch (error) {
+    await fs.unlink(tmpPath);
+    throw new Unauthorized("Not authorized");
   }
 };
 
@@ -96,4 +127,5 @@ module.exports = {
   getCurrent,
   logout,
   updateSubscription,
+  updateAvatar,
 };
