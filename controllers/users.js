@@ -1,29 +1,38 @@
-const { Conflict, Unauthorized, NotFound } = require("http-errors");
+const { Conflict, Unauthorized, NotFound, BadRequest } = require("http-errors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const path = require("path");
 const fs = require("fs/promises");
 const Jimp = require("jimp");
+const { nanoid } = require("nanoid");
+const { sendEmail } = require("../helpers");
 const { serviceUsers } = require("../services");
 
 require("dotenv").config();
 const { SECRET_KEY } = process.env;
 
 const signup = async (req, res, next) => {
-  const { email, password } = req.body;
   try {
-    const user = await serviceUsers.findUser({ email });
+    const { email, password } = req.body;
+    const user = await serviceUsers.findUser(email);
     if (user) {
       throw new Conflict("Email in use");
     }
     const avatarURL = gravatar.url(email);
     const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+    const verificationToken = nanoid();
     await serviceUsers.signupUser({
       email,
       password: hashPassword,
       avatarURL,
     });
+    const mail = {
+      to: email,
+      subject: "Registration confirmation",
+      html: `<a target='_blank' href='http://localhost:3000/api/users/verify/${verificationToken}'>Click to confirm your registration.</a>`,
+    };
+    await sendEmail(mail);
     res.status(201).json({
       user: {
         email,
@@ -36,12 +45,51 @@ const signup = async (req, res, next) => {
   }
 };
 
-const login = async (req, res, next) => {
-  const { email, password } = req.body;
+const verifyEmail = async (req, res, next) => {
   try {
-    const user = await serviceUsers.findUser({ email });
+    const { verificationToken } = req.params;
+    const user = await serviceUsers.findVerifiedUser(verificationToken);
+    if (!user) {
+      throw new NotFound("User is not found");
+    }
+    await serviceUsers.verifyUser(user._id);
+    res.status(200).json("Verification is successful");
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await serviceUsers.findUser(email);
+    if (!user) {
+      throw new NotFound("User is not found");
+    }
+    if (user.verify) {
+      throw new BadRequest("Verification has already been passed");
+    }
+    const mail = {
+      to: email,
+      subject: "Registration confirmation",
+      html: `<a target='_blank' href='http://localhost:3000/api/users/verify/${user.verificationToken}'>Click to confirm your registration.</a>`,
+    };
+    await sendEmail(mail);
+    res.status(200).json("Verification email is sent");
+  } catch (error) {
+    next(error);
+  }
+};
+
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await serviceUsers.findUser(email);
     if (!user || !user.comparePassword(password)) {
       throw new Unauthorized("Email or password is wrong");
+    }
+    if (!user.verify) {
+      throw new Unauthorized("Email is not verified");
     }
     const payload = {
       id: user._id,
@@ -61,8 +109,8 @@ const login = async (req, res, next) => {
 };
 
 const getCurrent = async (req, res, next) => {
-  const { email } = req.body;
   try {
+    const { email } = req.body;
     res.status(200).json({
       user: {
         email,
@@ -75,8 +123,8 @@ const getCurrent = async (req, res, next) => {
 };
 
 const logout = async (req, res, next) => {
-  const { _id } = req.user;
   try {
+    const { _id } = req.user;
     await serviceUsers.logoutUser(_id);
     res.status(204).json();
   } catch (error) {
@@ -85,9 +133,9 @@ const logout = async (req, res, next) => {
 };
 
 const updateSubscription = async (req, res, next) => {
-  const { _id } = req.user;
-  const { subscription } = req.body;
   try {
+    const { _id } = req.user;
+    const { subscription } = req.body;
     const user = await serviceUsers.updateSubscription(_id, subscription);
     if (!user) {
       throw new NotFound("Not found");
@@ -123,6 +171,8 @@ const updateAvatar = async (req, res) => {
 
 module.exports = {
   signup,
+  verifyEmail,
+  resendVerificationEmail,
   login,
   getCurrent,
   logout,
