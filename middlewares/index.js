@@ -1,5 +1,6 @@
 const {
   validation,
+  emailValidation,
   favoriteValidation,
   subscriptionValidation,
 } = require("./validation");
@@ -8,6 +9,7 @@ const upload = require("./upload");
 
 module.exports = {
   validation,
+  emailValidation,
   favoriteValidation,
   subscriptionValidation,
   auth,

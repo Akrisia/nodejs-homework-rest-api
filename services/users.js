@@ -1,15 +1,28 @@
 const { User } = require("./schemas/user");
 
-const findUser = async ({ email }) => {
+const findUser = async (email) => {
   return User.findOne({ email });
+};
+
+const findVerifiedUser = async (verificationToken) => {
+  return User.findOne({ verificationToken });
+};
+
+const verifyUser = async (id) => {
+  return User.findByIdAndUpdate(id, { verificationToken: null, verify: true });
 };
 
 const findUserById = async (id) => {
   return User.findById(id);
 };
 
-const signupUser = async ({ email, password, avatarURL }) => {
-  return User.create({ email, password, avatarURL });
+const signupUser = async ({
+  email,
+  password,
+  avatarURL,
+  verificationToken,
+}) => {
+  return User.create({ email, password, avatarURL, verificationToken });
 };
 
 const loginUser = async (id, token) => {
@@ -30,6 +43,8 @@ const updateAvatar = async (id, avatarURL) => {
 
 module.exports = {
   findUser,
+  findVerifiedUser,
+  verifyUser,
   findUserById,
   signupUser,
   loginUser,

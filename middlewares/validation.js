@@ -33,8 +33,21 @@ const subscriptionValidation = (schema) => {
   };
 };
 
+const emailValidation = (schema) => {
+  return (req, res, next) => {
+    const { error } = schema.validate(req.body);
+    if (error) {
+      error.status = 400;
+      error.message = "Missing required field email";
+      next(error);
+    }
+    next();
+  };
+};
+
 module.exports = {
   validation,
   favoriteValidation,
   subscriptionValidation,
+  emailValidation,
 };
