@@ -16,8 +16,13 @@ const findUserById = async (id) => {
   return User.findById(id);
 };
 
-const signupUser = async ({ email, password, avatarURL }) => {
-  return User.create({ email, password, avatarURL });
+const signupUser = async ({
+  email,
+  password,
+  avatarURL,
+  verificationToken,
+}) => {
+  return User.create({ email, password, avatarURL, verificationToken });
 };
 
 const loginUser = async (id, token) => {

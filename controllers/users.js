@@ -26,6 +26,7 @@ const signup = async (req, res, next) => {
       email,
       password: hashPassword,
       avatarURL,
+      verificationToken,
     });
     const mail = {
       to: email,
